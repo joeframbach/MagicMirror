@@ -1,0 +1,29 @@
+{
+  "name": "MagicMirror",
+  "version": "0.0.0",
+  "description": "MagicMirror ===========",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/joeframbach/MagicMirror.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/joeframbach/MagicMirror/issues"
+  },
+  "homepage": "https://github.com/joeframbach/MagicMirror",
+  "dependencies": {
+    "connect": "^2.15.0",
+    "director": "^1.2.3",
+    "dispatch": "^1.0.0",
+    "googleapis": "^0.7.0",
+    "mongo": "^0.1.0",
+    "quip": "^0.1.2",
+    "readline": "0.0.3"
+  }
+}
