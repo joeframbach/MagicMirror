@@ -1,5 +1,7 @@
 var config = {};
 
+config.url = 'http://localhost';
+
 config.google = {
   "auth_uri":      "https://accounts.google.com/o/oauth2/auth",
   "client_secret": "ABCDEF1234567890",

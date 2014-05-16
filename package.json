@@ -22,7 +22,6 @@
     "director": "^1.2.3",
     "dispatch": "^1.0.0",
     "googleapis": "^0.7.0",
-    "mongo": "^0.1.0",
     "quip": "^0.1.2",
     "readline": "0.0.3"
   }

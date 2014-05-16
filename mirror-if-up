@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Symlink this file to /etc/network/if-up.d/mirror-pi
+
+# Only run when wlan0 starts.
+if [ "$IFACE" != wlan0 ]; then
+    exit 0
+fi
+
+if [ "$MODE" != start ]; then
+    exit 0
+fi
+
+su - pi -c '/home/pi/MagicMirror/start'
+

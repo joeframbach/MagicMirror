@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+if ! screen -list | grep -q "mirror-pi"; then
+  screen -dmS mirror-pi bash -c 'nodemon ~pi/MagicMirror/server.js 2>&1 >> ~pi/MagicMirror/mirror-if-up.log'
+fi
+

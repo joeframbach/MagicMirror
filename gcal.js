@@ -6,7 +6,7 @@ var OAuth2Client = googleapis.OAuth2Client;
 
 var CLIENT_ID = config.google.client_id;
 var CLIENT_SECRET = config.google.client_secret;
-var REDIRECT_URL = 'http://localhost:8080/oauth2callback';
+var REDIRECT_URL = config.url + '/oauth2callback';
 
 var rl = readline.createInterface({
   input: process.stdin,
@@ -14,32 +14,36 @@ var rl = readline.createInterface({
 });
 
 var gcal = {};
-
-gcal.ready = function(callback) {
-  // load google calendar v3 API resources and methods
+gcal.initialize = function(callback) {
+  gcal.oauth2Client = new OAuth2Client(CLIENT_ID, CLIENT_SECRET, REDIRECT_URL);
   googleapis
     .discover('calendar', 'v3')
     .execute(function(err, client) {
       gcal.client = client;
-      gcal.oauth2Client = new OAuth2Client(CLIENT_ID, CLIENT_SECRET, REDIRECT_URL);
-
-      var url = gcal.oauth2Client.generateAuthUrl({
-        access_type: 'offline', // will return a refresh token
-        approval_prompt: 'force',
-        scope: 'https://www.googleapis.com/auth/calendar.readonly'
-      });
-
-      console.log('Visit the url: ', url);
-
+      callback();
     });
 };
 
-gcal.setAccessToken = function(code, callback) {
+gcal.getAuthUrl = function(callback) {
+  var url = gcal.oauth2Client.generateAuthUrl({
+    access_type: 'offline', // will return a refresh token
+    approval_prompt: 'force',
+    scope: 'https://www.googleapis.com/auth/calendar.readonly'
+  });
+
+  callback(url);
+};
+
+gcal.getAccessToken = function(code, callback) {
   gcal.oauth2Client.getToken(code, function(err, tokens) {
-    gcal.oauth2Client.setCredentials(tokens);
-    callback();
+    callback(tokens);
   });
 };
+
+gcal.setAccessToken = function(tokens, callback) {
+  gcal.oauth2Client.setCredentials(tokens);
+  callback();
+}
 
 gcal.getAgenda = function(callback) {
   gcal.client

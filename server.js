@@ -15,9 +15,16 @@ var server = connect.createServer(
             res.json({ githash: stdout.trim() });
           });
         },
+        '/oauth': function(req, res, next) {
+          gcal.getAuthUrl(function(url) {
+            res.redirect(url);
+          });
+        },
         '/oauth2callback': function(req, res, next) {
-          gcal.setAccessToken(req.query.code, function() {
-            res.redirect('/');
+          gcal.getAccessToken(req.query.code, function(tokens) {
+            gcal.setAccessToken(tokens, function() {
+              res.redirect('/');
+            });
           });
         },
         '/calendar': function(req, res, next) {
@@ -28,5 +35,11 @@ var server = connect.createServer(
     })
 );
 
-gcal.ready();
-server.listen(8080);
+gcal.initialize(function() {
+  if (config.google.tokens) {
+    gcal.setAccessToken(config.google.tokens, function() {});
+  }
+
+  server.listen(64080);
+});
+
