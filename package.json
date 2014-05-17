@@ -23,6 +23,7 @@
     "dispatch": "^1.0.0",
     "googleapis": "^0.7.0",
     "quip": "^0.1.2",
-    "readline": "0.0.3"
+    "readline": "0.0.3",
+    "async": "^0.9.0"
   }
 }

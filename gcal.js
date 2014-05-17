@@ -1,5 +1,6 @@
 var googleapis = require('googleapis'),
     readline = require('readline')
+    async = require('async'),
     config = require('./config');
 
 var OAuth2Client = googleapis.OAuth2Client;
@@ -46,16 +47,26 @@ gcal.setAccessToken = function(tokens, callback) {
 }
 
 gcal.getAgenda = function(callback) {
-  gcal.client
-    .calendar.events.list({
-                 'calendarId': config.google.calendarId,
-                 'maxResults': 10,
-                 'orderBy': 'startTime',
-                 'singleEvents': true,
-                 'timeMin': new Date().toISOString()
-               })
-    .withAuthClient(gcal.oauth2Client)
-    .execute(callback);
+  async.concat(
+    config.google.calendar_ids,
+    function(calendar_id, concat_cb) {
+      gcal.client
+        .calendar.events.list({
+           'calendarId': calendar_id,
+           'maxResults': 10,
+           'orderBy': 'startTime',
+           'singleEvents': true,
+           'timeMin': new Date().toISOString()
+         })
+        .withAuthClient(gcal.oauth2Client)
+        .execute(function(err, agenda) {
+          concat_cb(err, agenda.items);
+        });
+    },
+    function(err, agenda_items) {
+      callback(err, agenda_items);
+    }
+  );
 };
 
 module.exports = gcal;

@@ -28,8 +28,8 @@ var server = connect.createServer(
           });
         },
         '/calendar': function(req, res, next) {
-          gcal.getAgenda(function (err, agenda) {
-            res.json(agenda);
+          gcal.getAgenda(function (err, agenda_items) {
+            res.json(agenda_items);
           });
         }
     })

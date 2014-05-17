@@ -10,7 +10,7 @@ config.google = {
   "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/ABCDEF1234567890@developer.gserviceaccount.com",
   "client_id":     "ABCDEF1234567890-ABCDEF1234567890.apps.googleusercontent.com",
   "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-  "calendarId":    "ABCDEF1234567890@gmail.com"
+  "calendar_ids":  ["ABCDEF1234567890@gmail.com"]
 };
 
 module.exports = config;

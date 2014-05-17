@@ -44,19 +44,20 @@ jQuery(document).ready(function($) {
 	})();
 
 	(function updateCalendarData() {
-    $.getJSON('/calendar', function(agenda) {
-      for (var i in agenda.items) {
-        agenda.items[i].dt = moment(agenda.items[i].start.date || agenda.items[i].start.dateTime);
+    $.getJSON('/calendar', function(agenda_items) {
+      for (var i in agenda_items) {
+        agenda_items[i].dt = moment(agenda_items[i].start.date || agenda_items[i].start.dateTime);
       };
-    	agenda.items.sort(function(a,b){return a.dt.unix()-b.dt.unix()});
+    	agenda_items.sort(function(a,b){return a.dt.unix()-b.dt.unix()});
 
       var table = $('<table/>').addClass('xsmall').addClass('calendar-table');
 
-      for (var i in agenda.items) {
-        var e = agenda.items[i];
+      for (var i in agenda_items) {
+        var e = agenda_items[i];
         
         var row = $('<tr/>');
-        row.append($('<td/>').html(e.summary).addClass('description'));
+        var summary = e.creator.displayName[0] + ' ' + e.summary;
+        row.append($('<td/>').html(summary).addClass('description'));
         row.append($('<td/>').html(e.dt.fromNow()).addClass('days dimmed'));
         table.append(row);
       }
