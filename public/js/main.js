@@ -20,8 +20,8 @@ jQuery(document).ready(function($) {
     'lang': 'en'
   };
   
+  var githash;
   (function checkVersion() {
-    var githash;
     $.getJSON('/githash', {}, function(json, textStatus) {
       if (!githash) {
         githash = json.githash;
