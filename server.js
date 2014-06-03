@@ -40,6 +40,6 @@ gcal.initialize(function() {
     gcal.setAccessToken(config.google.tokens, function() {});
   }
 
-  server.listen(64080);
+  server.listen(64080, "127.0.0.1");
 });
 

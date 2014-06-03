@@ -60,7 +60,7 @@ gcal.getAgenda = function(callback) {
          })
         .withAuthClient(gcal.oauth2Client)
         .execute(function(err, agenda) {
-          concat_cb(err, agenda.items);
+          agenda && agenda.items && concat_cb(err, agenda.items);
         });
     },
     function(err, agenda_items) {
