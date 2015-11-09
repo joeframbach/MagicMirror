@@ -15,7 +15,7 @@ jQuery.fn.updateWithText = function(text, speed) {
 jQuery(document).ready(function($) {
 
   var weatherParams = {
-    'q': 'San Francisco, CA',
+    'q': '94111',
     'units': 'imperial',
     'lang': 'en'
   };
@@ -41,6 +41,15 @@ jQuery(document).ready(function($) {
     setTimeout(function() {
       updateTime();
     }, 1000*15); // 15 seconds
+  })();
+
+  (function updateFact() {
+    $.getJSON('/facts', function(facts) {
+      if (facts && facts.length) {
+        $('.fact').text(facts[Math.floor(Math.random()*facts.length)]);
+      }
+    });
+    setTimeout(updateFact, 1000*60*60); // 1 hour
   })();
 
   (function updateCalendarData() {

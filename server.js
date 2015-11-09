@@ -3,7 +3,8 @@ var connect = require('connect'),
     dispatch = require('dispatch'),
     exec = require('child_process').exec,
     config = require('./config.js'),
-    gcal = require('./gcal.js');
+    gcal = require('./gcal.js'),
+    fotd = require('./fotd.js');
 
 var server = connect.createServer(
     connect.static(__dirname + '/public'),
@@ -25,6 +26,11 @@ var server = connect.createServer(
             gcal.setAccessToken(tokens, function() {
               res.redirect('/');
             });
+          });
+        },
+        '/facts': function(req, res, next) {
+          fotd.getFacts(function (err, facts) {
+            res.json(facts);
           });
         },
         '/calendar': function(req, res, next) {
