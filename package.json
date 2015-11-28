@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "nodemon server.js"
   },
   "repository": {
     "type": "git",
@@ -18,14 +18,17 @@
   },
   "homepage": "https://github.com/joeframbach/MagicMirror",
   "dependencies": {
-    "async": "^0.9.0",
-    "cheerio": "^0.18.0",
-    "connect": "^2.15.0",
+    "async": "^1.5.0",
+    "body-parser": "^1.14.1",
+    "cheerio": "^0.19.0",
+    "connect": "^3.4.0",
     "director": "^1.2.3",
     "dispatch": "^1.0.0",
-    "googleapis": "^0.7.0",
+    "dotenv": "^1.2.0",
+    "googleapis": "^2.1.6",
+    "nodemon": "^1.8.1",
     "quip": "^0.1.2",
-    "readline": "0.0.3",
-    "request": "^2.53.0"
+    "request": "^2.53.0",
+    "serve-static": "^1.10.0"
   }
 }

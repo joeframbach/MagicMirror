@@ -1,51 +1,68 @@
-var connect = require('connect'),
-    quip = require('quip'),
+require('dotenv').load();
+
+var http = require('http'),
+    connect = require('connect'),
     dispatch = require('dispatch'),
-    exec = require('child_process').exec,
-    config = require('./config.js'),
-    gcal = require('./gcal.js'),
-    fotd = require('./fotd.js');
+    gcal = require('./lib/gcal.js'),
+    fotd = require('./lib/fotd.js'),
+    weather = require('./lib/weather.js');
 
-var server = connect.createServer(
-    connect.static(__dirname + '/public'),
-    connect.query(),
-    quip,
-    dispatch({
-        '/githash': function(req, res, next) {
-          exec('git rev-parse HEAD', function(error, stdout, stderr) {
-            res.json({ githash: stdout.trim() });
-          });
-        },
-        '/oauth': function(req, res, next) {
-          gcal.getAuthUrl(function(url) {
-            res.redirect(url);
-          });
-        },
-        '/oauth2callback': function(req, res, next) {
-          gcal.getAccessToken(req.query.code, function(tokens) {
-            gcal.setAccessToken(tokens, function() {
-              res.redirect('/');
-            });
-          });
-        },
-        '/facts': function(req, res, next) {
-          fotd.getFacts(function (err, facts) {
-            res.json(facts);
-          });
-        },
-        '/calendar': function(req, res, next) {
-          gcal.getAgenda(function (err, agenda_items) {
-            res.json(agenda_items);
-          });
-        }
-    })
-);
-
-gcal.initialize(function() {
-  if (config.google.tokens) {
-    gcal.setAccessToken(config.google.tokens, function() {});
+var app = connect();
+app.use(require('serve-static')(__dirname + '/public'));
+app.use(require('body-parser').urlencoded({extended: true}));
+app.use(function (req, res, next) {
+  res.json = function(obj) {
+    res.setHeader('Content-Type', 'application/json')
+    res.end(JSON.stringify(obj, null, 2))
   }
-
-  server.listen(64080, "127.0.0.1");
+  res.redirect = function (url) {
+    res.writeHead(302, {Location: url});
+    res.end();
+  }
+  next()
 });
+app.use(dispatch({
+  '/oauth': function(req, res, next) {
+    res.redirect(gcal.authUrl);
+  },
+  '/oauth2callback': function(req, res, next) {
+    var query = require('url').parse(req.url, true).query
+    gcal.getAccessToken(query.code, function(tokens) {
+      console.log('New tokens!', tokens);
+      gcal.setCredentials(tokens);
+      res.redirect('/');
+    });
+  },
+  '/facts': function(req, res, next) {
+    fotd.getFacts(function (err, facts) {
+      res.json(facts);
+    });
+  },
+  '/calendar': function(req, res, next) {
+    gcal.getAgenda(function (err, agenda_items) {
+      res.json(agenda_items);
+    });
+  },
+  '/weather': function (req, res, next) {
+    weather.getWeather(function (err, forecast) {
+      res.json(forecast);
+    });
+  },
+  '/forecast': function (req, res, next) {
+    weather.getForecast(function (err, forecast) {
+      res.json(forecast);
+    });
+  }
+}));
+
+if (process.env.GOOGLE_ACCESS_TOKEN) {
+  gcal.setCredentials({
+    access_token: process.env.GOOGLE_ACCESS_TOKEN,
+    token_type: process.env.GOOGLE_TOKEN_TYPE,
+    refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
+    expiry_date: process.env.GOOGLE_EXPIRY_DATE
+  });
+}
+
+http.createServer(app).listen(64080, "127.0.0.1");
 

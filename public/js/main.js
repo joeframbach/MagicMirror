@@ -1,4 +1,4 @@
-jQuery.fn.updateWithText = function(text, speed) {
+$.fn.updateWithText = function(text, speed) {
   var dummy = $('<div/>').html(text);
 
   if ($(this).html() != dummy.html())
@@ -12,28 +12,7 @@ jQuery.fn.updateWithText = function(text, speed) {
   }
 }
 
-jQuery(document).ready(function($) {
-
-  var weatherParams = {
-    'q': '94111',
-    'units': 'imperial',
-    'lang': 'en'
-  };
-  
-  var githash;
-  (function checkVersion() {
-    $.getJSON('/githash', {}, function(json, textStatus) {
-      if (!githash) {
-        githash = json.githash;
-      }
-      else if (json.githash != githash) {
-        window.location.reload();
-      }
-    });
-    setTimeout(function() {
-      checkVersion();
-    }, 3000);
-  })();
+$(document).ready(function() {
 
   (function updateTime() {
     $('.date').html(moment().format('llll'));
@@ -101,7 +80,7 @@ jQuery(document).ready(function($) {
       '50n':'wi-night-alt-cloudy-windy'    
     }
 
-    $.getJSON('http://api.openweathermap.org/data/2.5/weather', weatherParams, function(owm, textStatus) {
+    $.getJSON('/weather', function(owm, textStatus) {
 
       var temp = owm.main.temp|0;
       var temp_min = owm.main.temp_min|0;
@@ -130,7 +109,7 @@ jQuery(document).ready(function($) {
   })();
 
   (function updateWeatherForecast() {
-    $.getJSON('http://api.openweathermap.org/data/2.5/forecast', weatherParams, function(owm, textStatus) {
+    $.getJSON('/forecast', function(owm, textStatus) {
 
       var hourly = {};
       var daily = {};
