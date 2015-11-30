@@ -1,56 +1,47 @@
-$.fn.updateWithText = function(text, speed) {
-  var dummy = $('<div/>').html(text);
-
-  if ($(this).html() != dummy.html())
-  {
-    $(this).fadeOut(speed/2, function() {
-      $(this).html(text);
-      $(this).fadeIn(speed/2, function() {
-        //done
-      });    
-    });
-  }
-}
-
 $(document).ready(function() {
+  Handlebars.registerHelper('moment', function(context, block) {
+    if (typeof context === 'object' && typeof block === 'undefined') {
+      block = context;
+      context = void 0;
+    }
+    if (!window.moment) return context;
+    block = block || { hash: {}};
+    var m = block.hash.unix ? moment.unix(context) : moment(context);
+    var f = block.hash.format || "MMM DD, YYYY hh:mm:ss A";
+    return m.format(f);
+  });
 
-  (function updateTime() {
-    $('.date').html(moment().format('llll'));
-    
-    setTimeout(function() {
-      updateTime();
-    }, 1000*15); // 15 seconds
+  var source = $('#template').html();
+  var template = Handlebars.compile(source);
+  var container = $('#container');
+  var data = {};
+
+  var updateDisplayTimeout;
+  (function updateDisplay() {
+    container.html(template(data));
+    clearTimeout(updateDisplayTimeout);
+    updateDisplayTimeout = setTimeout(updateDisplay, 15000);
   })();
 
   (function updateFact() {
     $.getJSON('/facts', function(facts) {
       if (facts && facts.length) {
-        $('.fact').text(facts[Math.floor(Math.random()*facts.length)]);
+        data.fact = facts[Math.floor(Math.random()*facts.length)];
+        updateDisplay();
       }
     });
     setTimeout(updateFact, 1000*60*60); // 1 hour
   })();
 
   (function updateCalendarData() {
-    $.getJSON('/calendar', function(agenda_items) {
-      for (var i in agenda_items) {
-        agenda_items[i].dt = moment(agenda_items[i].start.date || agenda_items[i].start.dateTime);
-      };
-      agenda_items.sort(function(a,b){return a.dt.unix()-b.dt.unix()});
-
-      var table = $('<table/>').addClass('xsmall').addClass('calendar-table');
-
-      for (var i in agenda_items) {
-        var e = agenda_items[i];
-        
-        var row = $('<tr/>');
-        var summary = e.creator.displayName[0] + ' ' + e.summary;
-        row.append($('<td/>').html(summary).addClass('description'));
-        row.append($('<td/>').html(e.dt.fromNow()).addClass('days dimmed'));
-        table.append(row);
-      }
-
-      $('.calendar').updateWithText(table,1000);
+    $.getJSON('/calendar', function(agendaItems) {
+      agendaItems.forEach(function (item) {
+        item.dt = moment(item.start.date || item.start.dateTime);
+        item.fromNow = item.dt.fromNow();
+      });
+      agendaItems.sort(function(a,b){return a.dt.unix()-b.dt.unix()});
+      data.calendar = agendaItems;
+      updateDisplay();
 
       setTimeout(function() {
         updateCalendarData();
@@ -81,26 +72,12 @@ $(document).ready(function() {
     }
 
     $.getJSON('/weather', function(owm, textStatus) {
-
-      var temp = owm.main.temp|0;
-      var temp_min = owm.main.temp_min|0;
-      var temp_max = owm.main.temp_max|0;
-
-      var wind = owm.wind.speed|0;
-
-      var iconClass = iconTable[owm.weather[0].icon];
-      var icon = '<span class="icon dimmed wi ' + iconClass + '"></span>' + temp + '&deg;';
-      $('.temp').updateWithText(icon, 1000);
-
-      var sunrise = moment.unix(owm.sys.sunrise).format('h:mm');
-      var sunset = moment.unix(owm.sys.sunset).format('h:mm');
-
-      var windString = '<span class="wi wi-strong-wind xdimmed"></span> ' + wind + 'mph' ;
-      var sunString = '<span class="wi wi-sunrise xdimmed"></span> ' + sunrise;
-      sunString += '<span class="wi wi-sunset xdimmed"></span> ' + sunset;
-
-      $('.wind').updateWithText(windString, 1000);
-      $('.sun').updateWithText(sunString, 1000);
+      data.temp = owm.main.temp|0;
+      data.tempIcon = iconTable[owm.weather[0].icon];
+      data.windSpeed = owm.wind.speed|0;
+      data.sunrise = owm.sys.sunrise;
+      data.sunset = owm.sys.sunset;
+      updateDisplay();
     });
 
     setTimeout(function() {
@@ -111,51 +88,34 @@ $(document).ready(function() {
   (function updateWeatherForecast() {
     $.getJSON('/forecast', function(owm, textStatus) {
 
-      var hourly = {};
-      var daily = {};
+      data.hourlyForecast = {};
+      data.dailyForecast = {};
 
       for (var i in owm.list) {
         var forecast = owm.list[i];
         var dt  = moment.unix(forecast.dt);
         if (dt.dayOfYear() == moment().dayOfYear()) {
-          var forecastData = hourly;
+          var forecastData = data.hourlyForecast;
           var key = dt.format('hA');
         } else {
-          var forecastData = daily;
+          var forecastData = data.dailyForecast;
           var key = dt.format('dddd');
         }
 
         if (forecastData[key] == undefined) {
           forecastData[key] = {
-            'timestamp':forecast.dt,
-            'temp_min':forecast.main.temp,
-            'temp_max':forecast.main.temp
+            'timestamp': forecast.dt,
+            'key': key,
+            'tempMin': forecast.main.temp|0,
+            'tempMax': forecast.main.temp|0
           };
         } else {
-          forecastData[key]['temp_min'] = Math.min(forecast.main.temp, forecastData[key]['temp_min']);
-          forecastData[key]['temp_max'] = Math.max(forecast.main.temp, forecastData[key]['temp_max']); 
+          forecastData[key]['tempMin'] = Math.min(forecast.main.temp|0, forecastData[key]['tempMin']);
+          forecastData[key]['tempMax'] = Math.max(forecast.main.temp|0, forecastData[key]['tempMax']); 
         }
 
       }
 
-      var appendToTable = function(i, forecast) {
-        var dt = moment.unix(forecast.timestamp);
-        var row = $('<tr />');
-
-        row.append($('<td/>').addClass('day').html(i))//dayAbbr[dt.getDay()]));
-        row.append($('<td/>').addClass('temp-min').html(forecast.temp_min|0));
-        row.append($('<td/>').addClass('temp-max').html(forecast.temp_max|0));
-
-        this.append(row);
-      };
-
-      var forecastHourly = $('<table />').addClass('forecast-table');
-      $.each(hourly, appendToTable.bind(forecastHourly));
-      var forecastDaily = $('<table />').addClass('forecast-table');
-      $.each(daily, appendToTable.bind(forecastDaily));
-
-      $('.forecast-hourly').updateWithText(forecastHourly, 1000);
-      $('.forecast-daily').updateWithText(forecastDaily, 1000);
     });
 
     setTimeout(function() {
